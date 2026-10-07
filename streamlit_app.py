@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-file_path = 'C:/Users/alexd/Downloads/ec2-eda-dashboard/ec2-eda-dashboard/ec2dataset.csv'
+file_path = 'ec2dataset.csv'
 data = pd.read_csv(file_path)
 
 print(data.info())
@@ -75,7 +75,7 @@ comparison = pd.concat([t2_instances[['Name', 'On Demand', 'Linux Reserved cost'
 comparison_sorted = comparison.dropna().sort_values('On Demand')
 print(comparison_sorted.head(10))
 
-file_path = 'C:/Users/alexd/Downloads/ec2-eda-dashboard/ec2-eda-dashboard/ec2dataset.csv'
+file_path = 'ec2dataset.csv'
 
 data = pd.read_csv(file_path)
 
