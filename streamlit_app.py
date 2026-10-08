@@ -21,19 +21,10 @@ st.subheader("First 5 Rows")
 st.dataframe(data.head())
 
 # COST DATA CLEANING
-cost_columns = [
-    "On Demand",
-    "Linux Reserved cost",
-    "Linux Spot Minimum cost",
-    "Windows On Demand cost",
-    "Windows Reserved cost"
-]
+cost_columns = ["On Demand", "Linux Reserved cost", "Linux Spot Minimum cost", "Windows On Demand cost", "Windows Reserved cost"]
 
 for column in cost_columns:
-    data[column] = pd.to_numeric(
-        data[column].str.replace("[$, hourly]", "", regex=True),
-        errors="coerce"
-    )
+    data[column] = pd.to_numeric(data[column].str.replace("[$, hourly]", "", regex=True), errors="coerce")
 
 st.header("Cost Analysis")
 
@@ -52,16 +43,9 @@ sns.set(style="whitegrid")
 
 fig, ax = plt.subplots(figsize=(12, 6))
 
-sns.boxplot(
-    data=data[cost_columns],
-    palette="Set2",
-    ax=ax
-)
+sns.boxplot(data=data[cost_columns], palette="Set2", ax=ax)
 
-ax.set_title(
-    "Cost Comparison of Amazon EC2 Instances (Hourly)",
-    fontsize=16
-)
+ax.set_title("Cost Comparison of Amazon EC2 Instances (Hourly)", fontsize=16)
 ax.set_ylabel("Cost (USD)", fontsize=12)
 ax.tick_params(axis="x", rotation=45)
 
@@ -80,11 +64,7 @@ def detect_outliers(column):
     lower_bound = Q1 - 1.5 * IQR
     upper_bound = Q3 + 1.5 * IQR
 
-    return data[
-        (data[column] < lower_bound)
-        | (data[column] > upper_bound)
-    ]
-
+    return data[(data[column] < lower_bound) | (data[column] > upper_bound)]
 
 outliers_on_demand = detect_outliers("On Demand")
 
@@ -94,17 +74,7 @@ st.dataframe(outliers_on_demand)
 # COST COMPARISON
 st.subheader("Lowest On-Demand Instances")
 
-cost_comparison = (
-    data[
-        [
-            "Name",
-            "On Demand",
-            "Linux Reserved cost"
-        ]
-    ]
-    .dropna()
-    .sort_values("On Demand")
-)
+cost_comparison = data[["Name", "On Demand", "Linux Reserved cost"]].dropna().sort_values("On Demand")
 
 st.dataframe(cost_comparison.head(10))
 
@@ -112,10 +82,7 @@ st.dataframe(cost_comparison.head(10))
 st.header("T2 vs T3 Instance Analysis")
 
 def filter_instance_family(family):
-    return data[
-        data["Name"].str.startswith(family)
-    ]
-
+    return data[data["Name"].str.startswith(family)]
 
 t2_instances = filter_instance_family("T2")
 t3_instances = filter_instance_family("T3")
@@ -134,17 +101,9 @@ st.subheader("T2 Instance Cost Distribution")
 
 fig, ax = plt.subplots(figsize=(12, 6))
 
-sns.boxplot(
-    data=t2_instances[cost_columns],
-    palette="Blues",
-    showmeans=True,
-    ax=ax
-)
+sns.boxplot(data=t2_instances[cost_columns], palette="Blues", showmeans=True, ax=ax)
 
-ax.set_title(
-    "Cost Distribution for T2 Instances",
-    fontsize=16
-)
+ax.set_title("Cost Distribution for T2 Instances", fontsize=16)
 ax.set_ylabel("Cost (USD)", fontsize=12)
 ax.tick_params(axis="x", rotation=45)
 
@@ -157,17 +116,9 @@ st.subheader("T3 Instance Cost Distribution")
 
 fig, ax = plt.subplots(figsize=(12, 6))
 
-sns.boxplot(
-    data=t3_instances[cost_columns],
-    palette="Greens",
-    showmeans=True,
-    ax=ax
-)
+sns.boxplot(data=t3_instances[cost_columns], palette="Greens", showmeans=True, ax=ax)
 
-ax.set_title(
-    "Cost Distribution for T3 Instances",
-    fontsize=16
-)
+ax.set_title("Cost Distribution for T3 Instances", fontsize=16)
 ax.set_ylabel("Cost (USD)", fontsize=12)
 ax.tick_params(axis="x", rotation=45)
 
@@ -178,188 +129,78 @@ st.pyplot(fig)
 # T2/T3 COMPARISON
 st.subheader("T2 and T3 Cost Comparison")
 
-comparison = pd.concat(
-    [
-        t2_instances[
-            [
-                "Name",
-                "On Demand",
-                "Linux Reserved cost"
-            ]
-        ],
-        t3_instances[
-            [
-                "Name",
-                "On Demand",
-                "Linux Reserved cost"
-            ]
-        ]
-    ]
-)
+comparison = pd.concat([
+    t2_instances[["Name", "On Demand", "Linux Reserved cost"]],
+    t3_instances[["Name", "On Demand", "Linux Reserved cost"]]
+])
 
-comparison_sorted = (
-    comparison
-    .dropna()
-    .sort_values("On Demand")
-)
+comparison_sorted = comparison.dropna().sort_values("On Demand")
 
 st.dataframe(comparison_sorted.head(10))
 
 # MACHINE LEARNING
 st.header("On-Demand Cost Prediction")
 
-data["Instance Memory"] = pd.to_numeric(
-    data["Instance Memory"].str.replace(" GiB", ""),
-    errors="coerce"
-)
+data["Instance Memory"] = pd.to_numeric(data["Instance Memory"].str.replace(" GiB", ""), errors="coerce")
 
-data["vCPUs"] = pd.to_numeric(
-    data["vCPUs"].str.extract(
-        r"(\d+)",
-        expand=False
-    ),
-    errors="coerce"
-)
+data["vCPUs"] = pd.to_numeric(data["vCPUs"].str.extract(r"(\d+)", expand=False), errors="coerce")
 
 st.subheader("Memory and vCPU Data")
-st.dataframe(
-    data[
-        [
-            "Instance Memory",
-            "vCPUs"
-        ]
-    ].head()
-)
+st.dataframe(data[["Instance Memory", "vCPUs"]].head())
 
-data_cleaned = data.dropna(
-    subset=[
-        "On Demand",
-        "Instance Memory",
-        "vCPUs"
-    ]
-)
+data_cleaned = data.dropna(subset=["On Demand", "Instance Memory", "vCPUs"])
 
 st.subheader("Cleaned Dataset")
-st.write(
-    f"Number of usable instances: {len(data_cleaned)}"
-)
+st.write(f"Number of usable instances: {len(data_cleaned)}")
 
-X = data_cleaned[
-    [
-        "Instance Memory",
-        "vCPUs"
-    ]
-]
-
+X = data_cleaned[["Instance Memory", "vCPUs"]]
 y = data_cleaned["On Demand"]
 
 # TRAIN / TEST SPLIT
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=42
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-st.write(
-    f"Training samples: {len(X_train)}"
-)
-
-st.write(
-    f"Testing samples: {len(X_test)}"
-)
+st.write(f"Training samples: {len(X_train)}")
+st.write(f"Testing samples: {len(X_test)}")
 
 # LINEAR REGRESSION
 model = LinearRegression()
 
-model.fit(
-    X_train,
-    y_train
-)
+model.fit(X_train, y_train)
 
 st.subheader("Linear Regression Model")
 
-st.write(
-    f"Intercept: {model.intercept_:.6f}"
-)
-
-st.write(
-    f"Memory coefficient: {model.coef_[0]:.6f}"
-)
-
-st.write(
-    f"vCPU coefficient: {model.coef_[1]:.6f}"
-)
+st.write(f"Intercept: {model.intercept_:.6f}")
+st.write(f"Memory coefficient: {model.coef_[0]:.6f}")
+st.write(f"vCPU coefficient: {model.coef_[1]:.6f}")
 
 # PREDICTIONS
 y_pred = model.predict(X_test)
 
 # MODEL METRICS
-mae = mean_absolute_error(
-    y_test,
-    y_pred
-)
-
-mse = mean_squared_error(
-    y_test,
-    y_pred
-)
-
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
 rmse = mse ** 0.5
 
 st.subheader("Model Performance")
 
 metric_col1, metric_col2, metric_col3 = st.columns(3)
 
-metric_col1.metric(
-    "MAE",
-    f"{mae:.6f}"
-)
-
-metric_col2.metric(
-    "MSE",
-    f"{mse:.6f}"
-)
-
-metric_col3.metric(
-    "RMSE",
-    f"{rmse:.6f}"
-)
+metric_col1.metric("MAE", f"{mae:.6f}")
+metric_col2.metric("MSE", f"{mse:.6f}")
+metric_col3.metric("RMSE", f"{rmse:.6f}")
 
 # ACTUAL VS PREDICTED
 st.subheader("Actual vs Predicted On-Demand Costs")
 
 fig, ax = plt.subplots(figsize=(8, 6))
 
-ax.scatter(
-    y_test,
-    y_pred,
-    alpha=0.7
-)
+ax.scatter(y_test, y_pred, alpha=0.7)
 
-ax.plot(
-    [
-        min(y_test),
-        max(y_test)
-    ],
-    [
-        min(y_test),
-        max(y_test)
-    ],
-    linestyle="--"
-)
+ax.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], linestyle="--")
 
-ax.set_title(
-    "Actual vs Predicted On-Demand Costs"
-)
-
-ax.set_xlabel(
-    "Actual On-Demand Cost"
-)
-
-ax.set_ylabel(
-    "Predicted On-Demand Cost"
-)
+ax.set_title("Actual vs Predicted On-Demand Costs")
+ax.set_xlabel("Actual On-Demand Cost")
+ax.set_ylabel("Predicted On-Demand Cost")
 
 plt.tight_layout()
 
@@ -368,14 +209,15 @@ st.pyplot(fig)
 # NEW INSTANCE PREDICTION
 st.subheader("Predict Cost for a New Instance")
 
-new_instance = [[4, 2]]
+memory_input = st.number_input("Memory (GiB)", min_value=0.0, value=4.0, step=1.0)
 
-predicted_cost = model.predict(
-    new_instance
-)
+vcpu_input = st.number_input("vCPUs", min_value=1, value=2, step=1)
 
-st.write(
-    f"Predicted On-Demand Cost for "
-    f"4 GiB, 2 vCPUs: "
-    f"${predicted_cost[0]:.4f}"
-)
+new_instance = pd.DataFrame({"Instance Memory": [memory_input], "vCPUs": [vcpu_input]})
+
+predicted_cost = model.predict(new_instance)
+
+# Prevent negative predicted prices
+predicted_cost = max(0, predicted_cost[0])
+
+st.write(f"Predicted On-Demand Cost: ${predicted_cost:.4f} per hour")
